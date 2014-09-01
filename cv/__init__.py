@@ -24,7 +24,7 @@ class Result(object):
         self.fd = None
     def __str__(self):
         return str(self.__dict__)
-    
+
 class AppConfig(object):
     curses = False
     throughput = False
@@ -33,8 +33,6 @@ class AppConfig(object):
     monitor_continuous = False
     throughput_wait_secs = 1
     proc_names = []
-
-
 
 class Main(object):
     def nprint(self, str):
