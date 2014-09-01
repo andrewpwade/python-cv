@@ -102,19 +102,15 @@ class Main(object):
         for pidinfo in pidinfos:
             fds = find_fd_for_pid(pidinfo.pid)
             fds = fds[:MAX_FD_PER_PID]
-            fd_size_max = 0
-            fd_biggest = 0
             if not fds:
                 self.nprint("[%5d] %s inactive/flushing/streaming/...\n" % (pidinfo.pid, pidinfo.name))
                 # FIXME: why is this needed here?
                 if self.config.curses:
                     self.mainwin.refresh()
                 continue
-            for fd in fds:
-                fd_info = get_fdinfo(pidinfo.pid, fd)
-                if fd_info.size > fd_size_max:
-                    fd_size_max = fd_info.size
-                    fd_biggest = fd_info
+
+            fd_infos = [get_fdinfo(pidinfo.pid, fd) for fd in fds]
+            fd_biggest = sorted(fd_infos, key=lambda fdinfo: fdinfo.size)[-1]
 
             # We've got our biggest_fd now, let's store the result
             result = Result()
