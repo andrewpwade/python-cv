@@ -359,6 +359,3 @@ class Main(object):
         self.config = None
         self.mainwin = None
         self.throughputs = defaultdict(list)
-
-if __name__ == '__main__':
-    Main().main()
