@@ -3,7 +3,7 @@ CV
 """
 from __future__ import print_function
 
-from collections import namedtuple, defaultdict, deque
+from collections import defaultdict, deque
 import itertools
 import os
 import sys
@@ -197,8 +197,6 @@ class Main(object):
         """
         if not self.config.proc_names:
             raise ValueError("no proc names defined")
-        fd_count = 0
-        result_count = 0
         results = []
 
         pidinfos = []
