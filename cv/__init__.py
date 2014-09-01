@@ -105,7 +105,7 @@ class Main(object):
             fd_size_max = 0
             fd_biggest = 0
             if not fds:
-                nprint("[%5d] %s inactive/flushing/streaming/...\n" % (pidinfo.pid, pidinfo.name))
+                self.nprint("[%5d] %s inactive/flushing/streaming/...\n" % (pidinfo.pid, pidinfo.name))
                 # FIXME: why is this needed here?
                 if self.config.curses:
                     self.mainwin.refresh()
