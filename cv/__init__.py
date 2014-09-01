@@ -41,7 +41,7 @@ class AppConfig(object):
 
 class Main(object):
     def nprint(self, str):
-        if self.config.monitor or self.config.monitor_continuous:
+        if self.config.curses:
             self.mainwin.addstr(str)
         else:
             print(str, end="")
@@ -222,7 +222,8 @@ class Main(object):
                 results = []
                 while True:
                     results = self.monitor_processes()
-                    self.mainwin.refresh()
+                    if self.config.curses:
+                        self.mainwin.refresh()
                     if self.config.monitor_continuous and not results:
                         sleep(self.config.throughput_wait_secs)
                     if not ((self.config.monitor and results) or self.config.monitor_continuous):
