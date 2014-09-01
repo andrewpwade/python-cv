@@ -1,6 +1,7 @@
-import os
-from stat import *
 import fcntl
+import os
+import time
+from stat import *
 
 __all__ = """
 find_fd_for_pid
@@ -99,6 +100,6 @@ def get_fdinfo(pid, fdnum, proc_path=PROC_PATH):
         fdinfo.size = stat_buf.st_size
 
     fdinfo.pos = 0
-    fdinfo.tv = time()
+    fdinfo.tv = time.time()
     fdinfo.pos = int(open("%s/%d/fdinfo/%d" % (proc_path, pid, fdnum)).readlines()[0].strip().split("\t")[1])
     return fdinfo
