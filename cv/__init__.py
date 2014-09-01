@@ -161,7 +161,7 @@ class Main(object):
                 tkey = (result.pid.pid, fd.num)
                 self.throughputs[tkey] = self.throughputs[tkey][:THROUGHPUT_SAMPLE_SIZE-1]
                 self.throughputs[tkey].append(byte_diff/sec_diff)
-                self.throughput_moving_avg = list(moving_average(self.throughputs[tkey]))
+                throughput_moving_avg = list(moving_average(self.throughputs[tkey]))
                 if throughput_moving_avg:
                     bytes_per_sec = throughput_moving_avg.pop()
                 self.nprint(" %s/s" % format_size(bytes_per_sec))
