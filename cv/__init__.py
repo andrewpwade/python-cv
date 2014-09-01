@@ -121,7 +121,9 @@ class Main(object):
             progress_pcnt = 0
             fd = None
             if self.config.throughput:
-                fd = get_fdinfo(pidinfo.pid, fd.num)
+                newfd = get_fdinfo(pidinfo.pid, fd.num)
+                if newfd.name == fd_stale.name:
+                    fd = newfd
 
             if fd_stale.pos > 0.0 and fd_stale.size > 0.0:
                 progress_pcnt = float(fd_stale.pos)/fd_stale.size
