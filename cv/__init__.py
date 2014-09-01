@@ -128,7 +128,7 @@ class Main(object):
         # wait a bit, so we can estimate throughput
         if self.config.throughput:
             sleep(self.config.throughput_wait_secs)
-        if config.curses:
+        if self.config.curses:
             self.mainwin.clear()
             self.mainwin.refresh()
 
