@@ -22,9 +22,6 @@ class Result(object):
     def __init__(self):
         self.pid = None
         self.fd = None
-        self.hbegin = None
-        self.hlist = None
-        self.hsize = None
     def __str__(self):
         return str(self.__dict__)
     
@@ -116,9 +113,6 @@ class Main(object):
             result = Result()
             result.pid = pidinfo
             result.fd = fd_biggest
-            result.hbegin = None
-            result.hend = None
-            result.hsize = 0
             results.append(result)
 
         # wait a bit, so we can estimate throughput
