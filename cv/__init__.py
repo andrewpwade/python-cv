@@ -108,10 +108,7 @@ class Main(object):
             fd_biggest = sorted(fd_infos, key=lambda fdinfo: fdinfo.size)[-1]
 
             # We've got our biggest_fd now, let's store the result
-            result = Result()
-            result.pid = pidinfo
-            result.fd = fd_biggest
-            results.append(result)
+            results.append((pidinfo, fd_biggest))
 
         # wait a bit, so we can estimate throughput
         if self.config.throughput:
@@ -120,33 +117,27 @@ class Main(object):
             self.mainwin.clear()
             self.mainwin.refresh()
 
-        for result in results:
+        for pidinfo, fd_stale in results:
             progress_pcnt = 0
-            cur_fd_info = None
-
-            fd = result.fd
+            fd = None
             if self.config.throughput:
-                cur_fd_info = get_fdinfo(result.pid.pid, result.fd.num)
-                if cur_fd_info.name == result.fd.name:
-                    fd = cur_fd_info
-                else:
-                    cur_fd_info = None
+                fd = get_fdinfo(pidinfo.pid, fd.num)
 
-            if fd.pos > 0.0 and fd.size > 0.0:
-                progress_pcnt = float(fd.pos)/fd.size
+            if fd_stale.pos > 0.0 and fd_stale.size > 0.0:
+                progress_pcnt = float(fd_stale.pos)/fd_stale.size
             self.nprint("[%5d] %s %s %.1f%% (%s / %s)" % (
-                result.pid.pid,
-                result.pid.name,
-                fd.name,
+                pidinfo.pid,
+                pidinfo.name,
+                fd_stale.name,
                 progress_pcnt,
-                format_size(float(fd.pos)),
-                format_size(float(fd.size))))
+                format_size(float(fd_stale.pos)),
+                format_size(float(fd_stale.size))))
 
-            if self.config.throughput and cur_fd_info:
+            if self.config.throughput and fd is not None:
                 bytes_per_sec = 0
-                sec_diff = float(fd.tv) - result.fd.tv
-                byte_diff = fd.pos - result.fd.pos
-                tkey = (result.pid.pid, fd.num)
+                sec_diff = float(fd.tv) - fd.tv
+                byte_diff = fd.pos - fd_stale.pos
+                tkey = (pidinfo.pid, fd_stale.num)
                 self.throughputs[tkey] = self.throughputs[tkey][:THROUGHPUT_SAMPLE_SIZE-1]
                 self.throughputs[tkey].append(byte_diff/sec_diff)
                 throughput_moving_avg = list(moving_average(self.throughputs[tkey]))
