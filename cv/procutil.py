@@ -1,6 +1,7 @@
 import fcntl
 import os
 import time
+from collections import namedtuple
 from stat import *
 
 __all__ = """
@@ -11,6 +12,12 @@ get_pids
 """.split()
 
 PROC_PATH = '/proc'
+
+openfile = namedtuple('openfile', ['fd', 'path', 'fdinfo'])
+fdinfo = namedtuple('fdinfo', ['fd', 'size', 'pos'])
+
+def get_pids():
+    return [int(e) for e in os.listdir('/proc') if e.isdigit() and os.path.isdir('/proc/'+e)]
 
 class FdInfo(object):
     def __init__(self):
@@ -29,8 +36,75 @@ class PidInfo(object):
     def __str__(self):
         return str(self.__dict__)
 
-def get_pids():
-    return [e for e in os.listdir('/proc') if e.isdigit() and os.path.isdir('/proc/'+e)]
+class Process(object):
+    def __init__(self, pid):
+        self.pid = pid
+
+    @property
+    def exe(self):
+        """
+        Returns the target of /proc/<pid>/exe or an empty string on error.
+        """
+        try:
+            exe = os.readlink('/proc/{0}/exe'.format(self.pid))
+        except (IOError, OSError):
+            # FIXME: handle 'no such file' for low pids (<=20)
+            # FIXME: handle /proc/<pid> not existing
+            # FIXME: handle EPERM/EACCESS
+            return ""
+        exe = exe.split('\x00')[0]
+        return exe
+
+    @property
+    def name(self):
+        """Returns the basename of the exe path"""
+        return os.path.basename(self.exe)
+
+    @property
+    def open_files(self):
+        """
+        Returns list of openfile namedtuples for regular and block files.
+        """
+        ret = []
+        dir_list = []
+        try:
+            dir_list = os.listdir('/proc/{0}/fd'.format(self.pid))
+        except OSError:
+            return []
+        for fd in dir_list:
+            fd = int(fd)
+            fdpath = '/proc/{0}/fd/{1}'.format(self.pid, fd)
+            try:
+                if os.path.islink(fdpath):
+                    fdpath = os.readlink(fdpath)
+                stat_buf = os.stat(fdpath)
+            except OSError:
+                continue
+            if not (S_ISREG(stat_buf.st_mode) or S_ISBLK(stat_buf.st_mode)):
+                continue
+
+            if S_ISBLK(stat_buf.st_mode):
+                with open(fdinfo.name, 'r') as dev:
+                    BLKGETSIZE64 = 0x80081272
+                    buf = fcntl.ioctl(dev.fileno(), BLKGETSIZE64, ' '*8)
+                    fsize = struct.unpack('L', buf)[0]
+            else:
+                fsize = stat_buf.st_size
+
+            fpos = open('/proc/{0}/fdinfo/{1}'.format(self.pid, fd)).readlines()[0].strip().split("\t")[1]
+            fd_info = fdinfo(fd, fsize, int(fpos))
+            ret.append(openfile(fd, fdpath, fd_info))
+        return ret
+        
+
+def procs_by_binary_name(bin_name):
+    procs = []
+    for pid in get_pids():
+        proc = Process(pid)
+        exe = proc.exe
+        if proc.name == bin_name:
+            procs.append(proc)
+    return procs
 
 def find_pids_by_binary_name(bin_name, max_pids=None):
     """

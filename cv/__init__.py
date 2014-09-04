@@ -9,7 +9,7 @@ import signal
 from time import sleep, time
 import curses
 
-from procutil import find_pids_by_binary_name, find_fd_for_pid, get_fdinfo
+from procutil import find_pids_by_binary_name, find_fd_for_pid, get_fdinfo, procs_by_binary_name
 from util import format_size, moving_average
 
 APP_NAME = "cv"
@@ -76,16 +76,16 @@ class Main(object):
         if not self.config.proc_names:
             raise ValueError("no proc names defined")
         results = []
+        timestamps = dict()
 
-        pidinfos = []
-
+        procs = []
         for name in self.config.proc_names:
-            p = find_pids_by_binary_name(name)
-            if p:
-                pidinfos.extend(p)
+            procs.extend(procs_by_binary_name(name))
+            if len(procs) >= MAX_PIDS:
+                procs = procs[:MAX_PIDS]
+                break
 
-        pidinfos = pidinfos[:MAX_PIDS]
-        if not pidinfos:
+        if not procs:
             if self.config.quiet:
                 return 0
             if self.config.curses:
@@ -94,21 +94,18 @@ class Main(object):
             self.nprint("No command currently running: %s. exiting" % (", ".join(self.config.proc_names)))
             return 0
 
-        for pidinfo in pidinfos:
-            fds = find_fd_for_pid(pidinfo.pid)
-            fds = fds[:MAX_FD_PER_PID]
-            if not fds:
-                self.nprint("[%5d] %s inactive/flushing/streaming/...\n" % (pidinfo.pid, pidinfo.name))
+        for proc in procs:
+            open_files = proc.open_files
+            open_files = open_files[:MAX_FD_PER_PID]
+            if not open_files:
+                self.nprint("[%5d] %s inactive/flushing/streaming/...\n" % (proc.pid, proc.name))
                 # FIXME: why is this needed here?
                 if self.config.curses:
                     self.mainwin.refresh()
                 continue
-
-            fd_infos = [get_fdinfo(pidinfo.pid, fd) for fd in fds]
-            fd_biggest = sorted(fd_infos, key=lambda fdinfo: fdinfo.size)[-1]
-
-            # We've got our biggest_fd now, let's store the result
-            results.append((pidinfo, fd_biggest))
+            fd_biggest = sorted(open_files, key=lambda x: x.fdinfo.size)[-1]
+            timestamps[(pid, fd)] = time()
+            results.append((proc, fd_biggest))
 
         # wait a bit, so we can estimate throughput
         if self.config.throughput:
@@ -117,29 +114,30 @@ class Main(object):
             self.mainwin.clear()
             self.mainwin.refresh()
 
-        for pidinfo, fd_stale in results:
+        for proc, fd_stale in results:
             progress_pcnt = 0
             fd = None
             if self.config.throughput:
-                newfd = get_fdinfo(pidinfo.pid, fd.num)
-                if newfd.name == fd_stale.name:
+                open_files = proc.open_files
+                newfd = next((x for x in open_files if x.fd == fd_stale.fd), None)
+                if newfd and newfd.path == fd_stale.path:
                     fd = newfd
 
-            if fd_stale.pos > 0.0 and fd_stale.size > 0.0:
-                progress_pcnt = float(fd_stale.pos)/fd_stale.size
+            if fd and fd_stale.fdinfo.pos > 0.0 and fd_stale.fdinfo.size > 0.0:
+                progress_pcnt = float(fd.fdinfo.pos)/fd.fdinfo.size
             self.nprint("[%5d] %s %s %.1f%% (%s / %s)" % (
-                pidinfo.pid,
-                pidinfo.name,
-                fd_stale.name,
+                proc.pid,
+                proc.name,
+                fd_stale.path,
                 progress_pcnt,
-                format_size(float(fd_stale.pos)),
-                format_size(float(fd_stale.size))))
+                format_size(float(fd_stale.fdinfo.pos)),
+                format_size(float(fd_stale.fdinfo.size))))
 
             if self.config.throughput and fd is not None:
                 bytes_per_sec = 0
                 sec_diff = float(fd.tv) - fd.tv
                 byte_diff = fd.pos - fd_stale.pos
-                tkey = (pidinfo.pid, fd_stale.num)
+                tkey = (proc.pid, fd_stale.num)
                 self.throughputs[tkey] = self.throughputs[tkey][:THROUGHPUT_SAMPLE_SIZE-1]
                 self.throughputs[tkey].append(byte_diff/sec_diff)
                 throughput_moving_avg = list(moving_average(self.throughputs[tkey]))
