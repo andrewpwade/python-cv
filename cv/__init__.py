@@ -98,10 +98,6 @@ class Main(object):
             open_files = proc.open_files
             open_files = open_files[:MAX_FD_PER_PID]
             if not open_files:
-                self.nprint("[%5d] %s inactive/flushing/streaming/...\n" % (proc.pid, proc.exe_name))
-                # FIXME: why is this needed here?
-                if self.config.curses:
-                    self.mainwin.refresh()
                 continue
             fd_biggest = sorted(open_files, key=lambda x: x.fdinfo.size)[-1]
             timestamps[(proc.pid, fd_biggest.fd)] = time()
