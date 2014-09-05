@@ -98,13 +98,13 @@ class Main(object):
             open_files = proc.open_files
             open_files = open_files[:MAX_FD_PER_PID]
             if not open_files:
-                self.nprint("[%5d] %s inactive/flushing/streaming/...\n" % (proc.pid, proc.name))
+                self.nprint("[%5d] %s inactive/flushing/streaming/...\n" % (proc.pid, proc.exe_name))
                 # FIXME: why is this needed here?
                 if self.config.curses:
                     self.mainwin.refresh()
                 continue
             fd_biggest = sorted(open_files, key=lambda x: x.fdinfo.size)[-1]
-            timestamps[(pid, fd)] = time()
+            timestamps[(proc.pid, fd_biggest.fd)] = time()
             results.append((proc, fd_biggest))
 
         # wait a bit, so we can estimate throughput
@@ -127,7 +127,7 @@ class Main(object):
                 progress_pcnt = float(fd.fdinfo.pos)/fd.fdinfo.size
             self.nprint("[%5d] %s %s %.1f%% (%s / %s)" % (
                 proc.pid,
-                proc.name,
+                proc.exe_name,
                 fd_stale.path,
                 progress_pcnt,
                 format_size(float(fd_stale.fdinfo.pos)),
@@ -135,9 +135,9 @@ class Main(object):
 
             if self.config.throughput and fd is not None:
                 bytes_per_sec = 0
-                sec_diff = float(fd.tv) - fd.tv
-                byte_diff = fd.pos - fd_stale.pos
-                tkey = (proc.pid, fd_stale.num)
+                sec_diff = float(time()) - timestamps[(proc.pid, fd_stale.fd)]
+                byte_diff = fd.fdinfo.pos - fd_stale.fdinfo.pos
+                tkey = (proc.pid, fd_stale.fd)
                 self.throughputs[tkey] = self.throughputs[tkey][:THROUGHPUT_SAMPLE_SIZE-1]
                 self.throughputs[tkey].append(byte_diff/sec_diff)
                 throughput_moving_avg = list(moving_average(self.throughputs[tkey]))

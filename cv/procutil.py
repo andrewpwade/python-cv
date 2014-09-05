@@ -38,6 +38,8 @@ class PidInfo(object):
 
 class Process(object):
     def __init__(self, pid):
+        assert pid, "pid can not false"
+        assert pid > 0, "pid can not be <= 0"
         self.pid = pid
 
     @property
@@ -56,7 +58,7 @@ class Process(object):
         return exe
 
     @property
-    def name(self):
+    def exe_name(self):
         """Returns the basename of the exe path"""
         return os.path.basename(self.exe)
 
@@ -101,8 +103,7 @@ def procs_by_binary_name(bin_name):
     procs = []
     for pid in get_pids():
         proc = Process(pid)
-        exe = proc.exe
-        if proc.name == bin_name:
+        if proc.exe_name == bin_name:
             procs.append(proc)
     return procs
 
