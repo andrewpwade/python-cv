@@ -130,7 +130,7 @@ class Main(object):
                 proc.pid,
                 proc.exe_name,
                 fd_stale.path,
-                progress_pcnt,
+                progress_pcnt*100,
                 format_size(float(fd_stale.fdinfo.pos)),
                 format_size(float(fd_stale.fdinfo.size))))
 
