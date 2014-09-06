@@ -121,6 +121,8 @@ class Main(object):
 
             if fd and fd_stale.fdinfo.pos > 0.0 and fd_stale.fdinfo.size > 0.0:
                 progress_pcnt = float(fd.fdinfo.pos)/fd.fdinfo.size
+            else:
+                progress_pcnt = float(fd_stale.fdinfo.pos)/fd_stale.fdinfo.size
 
             self.nprint("[%5d] %s %s %.1f%% (%s / %s)" % (
                 proc.pid,
