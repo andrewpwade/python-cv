@@ -92,7 +92,7 @@ class Main(object):
             if self.config.curses:
                 self.mainwin.clear()
                 self.mainwin.refresh()
-            self.nprint("No command currently running: %s. exiting" % (", ".join(self.config.proc_names)))
+            self.nprint("No command currently running: %s. exiting\n" % (", ".join(self.config.proc_names)))
             return 0
 
         for proc in procs:
