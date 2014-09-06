@@ -79,6 +79,7 @@ class Main(object):
         results = []
         timestamps = dict()
         procs = []
+        out = ""
 
         for name in self.config.proc_names:
             procs.extend(procs_by_binary_name(name))
@@ -88,12 +89,8 @@ class Main(object):
 
         if not procs:
             if self.config.quiet:
-                return 0
-            if self.config.curses:
-                self.mainwin.clear()
-                self.mainwin.refresh()
-            self.nprint("No command currently running: %s. exiting\n" % (", ".join(self.config.proc_names)))
-            return 0
+                return results, ""
+            return results, "No command currently running: %s. exiting\n" % (", ".join(self.config.proc_names))
 
         for proc in procs:
             open_files = proc.open_files
@@ -107,8 +104,6 @@ class Main(object):
         # wait a bit, so we can estimate throughput
         if self.config.throughput:
             sleep(self.config.throughput_wait_secs)
-        if self.config.curses:
-            self.mainwin.clear()
 
         for proc, fd_stale in results:
             progress_pcnt = 0
@@ -124,13 +119,13 @@ class Main(object):
             else:
                 progress_pcnt = float(fd_stale.fdinfo.pos)/fd_stale.fdinfo.size
 
-            self.nprint("[%5d] %s %s %.1f%% (%s / %s)" % (
+            out += "[%5d] %s %s %.1f%% (%s / %s)" % (
                 proc.pid,
                 proc.exe_name,
                 fd_stale.path,
                 progress_pcnt*100,
                 format_size(float(fd_stale.fdinfo.pos)),
-                format_size(float(fd_stale.fdinfo.size))))
+                format_size(float(fd_stale.fdinfo.size)))
 
             if self.config.throughput and fd is not None:
                 bytes_per_sec = 0
@@ -142,10 +137,10 @@ class Main(object):
                 throughput_moving_avg = list(moving_average(self.throughputs[tkey]))
                 if throughput_moving_avg:
                     bytes_per_sec = throughput_moving_avg.pop()
-                self.nprint(" %s/s" % format_size(bytes_per_sec))
-            self.nprint("\n")
+                out += " %s/s" % format_size(bytes_per_sec)
+            out += "\n"
 
-        return results
+        return results, out
 
     def make_config(self):
         config = AppConfig()
@@ -196,18 +191,21 @@ class Main(object):
         signal.signal(signal.SIGINT, self.int_handler)
 
         try:
-            if self.config.monitor or self.config.monitor_continuous:
-                results = []
-                while True:
-                    results = self.monitor_processes()
-                    if self.config.monitor_continuous and not results:
-                        sleep(self.config.throughput_wait_secs)
-                    if self.config.curses:
-                        self.mainwin.refresh()
-                    if not ((self.config.monitor and results) or self.config.monitor_continuous):
-                        break
-            else:
-                self.monitor_processes()
+            results = []
+            while True:
+                results, text = self.monitor_processes()
+                if self.config.curses:
+                    self.mainwin.clear()
+                if text:
+                    self.nprint(text)
+                if self.config.curses:
+                    self.mainwin.refresh()
+                if self.config.monitor_continuous and not results:
+                    sleep(self.config.throughput_wait_secs)
+                if not ((self.config.monitor and results) or self.config.monitor_continuous):
+                    break
+                if not (self.config.monitor or self.config.monitor_continuous):
+                    break
         finally:
             try:
                 if self.mainwin:
