@@ -84,7 +84,7 @@ class Process(object):
                 continue
 
             if S_ISBLK(stat_buf.st_mode):
-                with open(fdinfo.name, 'r') as dev:
+                with open(fdpath, 'r') as dev:
                     BLKGETSIZE64 = 0x80081272
                     buf = fcntl.ioctl(dev.fileno(), BLKGETSIZE64, ' '*8)
                     fsize = struct.unpack('L', buf)[0]
