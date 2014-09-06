@@ -1,7 +1,8 @@
 import fcntl
 import os
+import struct
 from collections import namedtuple
-from stat import *
+from stat import S_ISREG, S_ISBLK
 
 __all__ = """
 get_pids
