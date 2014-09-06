@@ -9,7 +9,7 @@ import signal
 from time import sleep, time
 import curses
 
-from procutil import find_pids_by_binary_name, find_fd_for_pid, get_fdinfo, procs_by_binary_name
+from procutil import procs_by_binary_name
 from util import format_size, moving_average
 
 APP_NAME = "cv"
