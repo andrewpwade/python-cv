@@ -75,10 +75,11 @@ class Main(object):
         """
         if not self.config.proc_names:
             raise ValueError("no proc names defined")
+
         results = []
         timestamps = dict()
-
         procs = []
+
         for name in self.config.proc_names:
             procs.extend(procs_by_binary_name(name))
             if len(procs) >= MAX_PIDS:
