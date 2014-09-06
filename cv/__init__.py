@@ -114,10 +114,9 @@ class Main(object):
                 if newfd and newfd.path == fd_stale.path:
                     fd = newfd
 
-            if fd and fd_stale.fdinfo.pos > 0.0 and fd_stale.fdinfo.size > 0.0:
-                progress_pcnt = float(fd.fdinfo.pos)/fd.fdinfo.size
-            else:
-                progress_pcnt = float(fd_stale.fdinfo.pos)/fd_stale.fdinfo.size
+            progress_fd = fd if fd else fd_stale
+            if progress_fd and progress_fd.fdinfo.pos > 0.0 and progress_fd.fdinfo.size > 0.0:
+                progress_pcnt = float(progress_fd.fdinfo.pos)/progress_fd.fdinfo.size
 
             out += "[%5d] %s %s %.1f%% (%s / %s)" % (
                 proc.pid,
