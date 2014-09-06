@@ -108,7 +108,6 @@ class Main(object):
             sleep(self.config.throughput_wait_secs)
         if self.config.curses:
             self.mainwin.clear()
-            self.mainwin.refresh()
 
         for proc, fd_stale in results:
             progress_pcnt = 0
@@ -200,10 +199,10 @@ class Main(object):
                 results = []
                 while True:
                     results = self.monitor_processes()
-                    if self.config.curses:
-                        self.mainwin.refresh()
                     if self.config.monitor_continuous and not results:
                         sleep(self.config.throughput_wait_secs)
+                    if self.config.curses:
+                        self.mainwin.refresh()
                     if not ((self.config.monitor and results) or self.config.monitor_continuous):
                         break
             else:
