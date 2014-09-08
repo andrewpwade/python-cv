@@ -20,23 +20,6 @@ fdinfo = namedtuple('fdinfo', ['fd', 'size', 'pos'])
 def get_pids():
     return [int(e) for e in os.listdir('/proc') if e.isdigit() and os.path.isdir('/proc/'+e)]
 
-class FdInfo(object):
-    def __init__(self):
-        self.num = None
-        self.size = 0
-        self.pos = 0
-        self.name = None
-        self.tv = None
-    def __str__(self):
-        return str(self.__dict__)
-
-class PidInfo(object):
-    def __init__(self, pid=None, name=None):
-        self.pid = pid
-        self.name = name
-    def __str__(self):
-        return str(self.__dict__)
-
 class Process(object):
     def __init__(self, pid):
         assert pid, "pid can not false"
