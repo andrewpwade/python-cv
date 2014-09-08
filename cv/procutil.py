@@ -22,6 +22,8 @@ class Process(object):
     def __init__(self, pid):
         assert pid, "pid can not false"
         assert pid > 0, "pid can not be <= 0"
+        if not isinstance(pid, int):
+            raise TypeError('pid must be an int')
         self.pid = pid
 
     @property
