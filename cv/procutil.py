@@ -12,8 +12,6 @@ openfile
 fdinfo
 """.split()
 
-PROC_PATH = '/proc'
-
 openfile = namedtuple('openfile', ['fd', 'path', 'fdinfo'])
 fdinfo = namedtuple('fdinfo', ['fd', 'size', 'pos'])
 
