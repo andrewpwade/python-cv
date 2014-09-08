@@ -61,6 +61,14 @@ class Process(object):
         return os.path.basename(self.exe)
 
     @property
+    def name(self):
+        try:
+            with open('/proc/{0}/stat'.format(self.pid)) as f:
+                return f.read().split(' ')[1].replace('(', '').replace(')', '')
+        except (IOError, OSError):
+            return ''
+
+    @property
     def open_files(self):
         """
         Returns list of openfile namedtuples for regular and block files.
@@ -100,6 +108,6 @@ def procs_by_binary_name(bin_name):
     procs = []
     for pid in get_pids():
         proc = Process(pid)
-        if proc.exe_name == bin_name:
+        if proc.exe_name == bin_name or proc.name == bin_name:
             procs.append(proc)
     return procs

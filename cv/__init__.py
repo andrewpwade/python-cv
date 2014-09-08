@@ -120,7 +120,7 @@ class Main(object):
 
             out += "[%5d] %s %s %.1f%% (%s / %s)" % (
                 proc.pid,
-                proc.exe_name,
+                proc.name,
                 fd_stale.path,
                 progress_pcnt*100,
                 format_size(float(fd_stale.fdinfo.pos)),
