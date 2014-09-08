@@ -7,6 +7,9 @@ from stat import S_ISREG, S_ISBLK
 __all__ = """
 get_pids
 procs_by_binary_name
+Process
+openfile
+fdinfo
 """.split()
 
 PROC_PATH = '/proc'
