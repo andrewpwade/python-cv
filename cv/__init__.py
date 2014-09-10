@@ -9,8 +9,8 @@ import signal
 from time import sleep, time
 import curses
 
-from procutil import procs_by_binary_name
-from util import format_size, moving_average
+from .procutil import procs_by_binary_name
+from .util import format_size, moving_average
 
 APP_NAME = "cv"
 PROC_NAMES = ["cp", "mv", "dd", "tar", "gzip", "gunzip", "cat", "grep", "fgrep", "egrep", "cut", "sort", "rsync"]
