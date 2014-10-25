@@ -90,7 +90,7 @@ class Main(object):
         if not procs:
             if self.config.quiet:
                 return results, ""
-            return results, "No command currently running: %s. exiting\n" % (", ".join(self.config.proc_names))
+            return results, "No command currently running: {1}. exiting\n".format(", ".join(self.config.proc_names))
 
         for proc in procs:
             open_files = proc.open_files
@@ -118,11 +118,11 @@ class Main(object):
             if progress_fd and progress_fd.fdinfo.pos > 0.0 and progress_fd.fdinfo.size > 0.0:
                 progress_pcnt = float(progress_fd.fdinfo.pos)/progress_fd.fdinfo.size
 
-            out += "[%5d] %s %s %.1f%% (%s / %s)" % (
+            out += "[{0: <5}] {1} {2} {3:.1%} ({4} / {5})".format(
                 proc.pid,
                 proc.name,
                 fd_stale.path,
-                progress_pcnt*100,
+                progress_pcnt,
                 format_size(float(fd_stale.fdinfo.pos)),
                 format_size(float(fd_stale.fdinfo.size)))
 
@@ -136,7 +136,7 @@ class Main(object):
                 throughput_moving_avg = list(moving_average(self.throughputs[tkey]))
                 if throughput_moving_avg:
                     bytes_per_sec = throughput_moving_avg.pop()
-                out += " %s/s" % format_size(bytes_per_sec)
+                out += " {1}/s".format(format_size(bytes_per_sec))
             out += "\n"
 
         return results, out
