@@ -20,9 +20,9 @@ def moving_average(iterable, n=3):
 
 def format_size(n):
     # source: http://stackoverflow.com/questions/1094841/reusable-library-to-get-human-readable-version-of-file-size
-    fmt = "%3.1f %s"
+    fmt = "{0:3.1f} {1}"
     for x in 'bytes','KB','MB','GB':
         if n < 1024.0 and n > -1024.0:
-            return fmt % (n, x)
+            return fmt.format(n, x)
         n /= 1024.0
-    return fmt % (n, 'TB')
+    return fmt.format(n, 'TB')
